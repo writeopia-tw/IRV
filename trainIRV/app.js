@@ -28,7 +28,7 @@ async function getRecordedAudio(word,lang){
    const res=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word));
    if(!res.ok)return null;
    const entries=await res.json(),choices=entries.flatMap(e=>e.phonetics||[]).filter(p=>p.audio);
-   const suffix=lang==='en-GB'?/(?:_gb_|-gb-|_uk_|-uk-)/i:/(?:_us_|-us-)/i;
+   const suffix=lang==='en-GB'?/(?:_gb_|_uk_|-(?:gb|uk)(?=\.(?:mp3|ogg|wav)(?:[?#]|$)))/i:/(?:_us_|-(?:us)(?=\.(?:mp3|ogg|wav)(?:[?#]|$)))/i;
    const selected=choices.find(p=>suffix.test(p.audio));
    // Do not label an unverified accent as UK or US.
    return selected?new URL(selected.audio,location.href).href:null;
@@ -60,7 +60,7 @@ async function playWords(words){
   if(seq!==audioSeq)return;
   if(i<words.length-1)await shortPause(430);
  }
- if(seq===audioSeq){refreshVoices();if(recordedCount&&recordedCount<words.length)$('voiceStatus').textContent+=`（本次 ${recordedCount}/${words.length} 個字使用真人錄音，其餘為合成語音）`;else if(recordedCount===words.length)$('voiceStatus').textContent+='（本次三態皆為真人錄音）';}
+ if(seq===audioSeq){refreshVoices();if(recordedCount<words.length)$('voiceStatus').textContent+=`（真人錄音 ${recordedCount}/${words.length}；其餘為裝置合成語音，口音及尾音可能不準確）`;else $('voiceStatus').textContent+='（三態皆為字典真人錄音）';}
 }
 function speak(s){playWords([s])}
 function tripleText(v){return [v.base,v.past.split('/')[0],v.pp.split('/')[0]].join(', ')}
